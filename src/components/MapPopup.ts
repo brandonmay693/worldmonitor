@@ -1123,7 +1123,7 @@ export class MapPopup {
         <span class="popup-icon">&#9992;</span>
         <span class="popup-title">${callsign}</span>
         <span class="popup-badge ${onGroundBadge}">${statusLabel}</span>
-        <button class="popup-close">&times;</button>
+        <button class="popup-close" aria-label="Close">×</button>
       </div>
       <div class="popup-body">
         <div class="popup-subtitle">ICAO24: ${escapeHtml(pos.icao24)}</div>

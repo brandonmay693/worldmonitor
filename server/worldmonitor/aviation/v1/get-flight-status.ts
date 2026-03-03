@@ -76,6 +76,7 @@ export async function getFlightStatus(
                 const params = new URLSearchParams({
                     access_key: apiKey,
                     flight_iata: flightNumber,
+                    flight_date: date,
                     limit: '5',
                 });
                 if (origin) params.set('dep_iata', origin);

@@ -381,6 +381,7 @@ export class DeckGLMap {
   private moveTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private lastAircraftFetchCenter: [number, number] | null = null;
   private lastAircraftFetchZoom = -1;
+  private aircraftFetchSeq = 0;
 
   constructor(container: HTMLElement, initialState: DeckMapState) {
     this.container = container;
@@ -4103,10 +4104,12 @@ export class DeckGLMap {
     const bounds = this.maplibreMap.getBounds();
     const sw = bounds.getSouthWest();
     const ne = bounds.getNorthEast();
+    const seq = ++this.aircraftFetchSeq;
     fetchAircraftPositions({
       swLat: sw.lat, swLon: sw.lng,
       neLat: ne.lat, neLon: ne.lng,
     }).then((positions) => {
+      if (seq !== this.aircraftFetchSeq) return; // discard stale response
       this.aircraftPositions = positions;
       this.onAircraftPositionsUpdate?.(positions);
       const center = this.maplibreMap?.getCenter();

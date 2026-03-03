@@ -117,12 +117,12 @@ export async function listAviationNews(
                 // Sort by newest first
                 filtered.sort((a, b) => b.publishedAt - a.publishedAt);
 
-                return { items: filtered.slice(0, maxItems) };
+                return { items: filtered };
             }
         );
 
         return {
-            items: result?.items ?? [],
+            items: (result?.items ?? []).slice(0, maxItems),
             source: 'rss',
             updatedAt: now,
         };
