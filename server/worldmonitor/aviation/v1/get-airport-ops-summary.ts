@@ -11,6 +11,7 @@ import {
     fetchAviationStackDelays,
     fetchNotamClosures,
     determineSeverity,
+    parseStringArray,
 } from './_shared';
 
 const CACHE_TTL = 300; // 5 minutes
@@ -19,8 +20,9 @@ export async function getAirportOpsSummary(
     _ctx: ServerContext,
     req: GetAirportOpsSummaryRequest,
 ): Promise<GetAirportOpsSummaryResponse> {
-    const requested = req.airports?.length > 0
-        ? req.airports.map(a => a.toUpperCase())
+    const rawAirports = parseStringArray(req.airports);
+    const requested = rawAirports.length > 0
+        ? rawAirports.map(a => a.toUpperCase())
         : ['IST', 'ESB', 'SAW', 'LHR', 'FRA', 'CDG'];
 
     const cacheKey = `aviation:ops-summary:v1:${requested.sort().join(',')}`;

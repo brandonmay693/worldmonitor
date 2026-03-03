@@ -14,6 +14,18 @@ import {
 } from '../../../../src/config/airports';
 import { CHROME_UA } from '../../../_shared/constants';
 
+/**
+ * Defensive parser for repeated-string query params.
+ * The sebuf codegen assigns `params.get("airports")` (a string) to a field
+ * typed as `string[]`.  At runtime `req.airports` may therefore be a
+ * comma-separated string rather than an actual array.
+ */
+export function parseStringArray(raw: unknown): string[] {
+  if (Array.isArray(raw)) return raw.filter(Boolean);
+  if (typeof raw === 'string' && raw.length > 0) return raw.split(',').filter(Boolean);
+  return [];
+}
+
 // ---------- Constants ----------
 
 export const FAA_URL = 'https://nasstatus.faa.gov/api/airport-status-information';

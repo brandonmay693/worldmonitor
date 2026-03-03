@@ -6,6 +6,7 @@ import type {
 } from '../../../../src/generated/server/worldmonitor/aviation/v1/service_server';
 import { cachedFetchJson } from '../../../_shared/redis';
 import { CHROME_UA } from '../../../_shared/constants';
+import { parseStringArray } from './_shared';
 
 const CACHE_TTL = 900; // 15 minutes
 
@@ -67,10 +68,10 @@ export async function listAviationNews(
     _ctx: ServerContext,
     req: ListAviationNewsRequest,
 ): Promise<ListAviationNewsResponse> {
-    const entities = req.entities ?? [];
+    const entities = parseStringArray(req.entities).map(e => e.toUpperCase());
     const windowMs = (req.windowHours ?? 24) * 60 * 60 * 1000;
     const maxItems = Math.min(req.maxItems ?? 20, 50);
-    const cacheKey = `aviation:news:${entities.sort().join(',')}:${req.windowHours}:v1`;
+    const cacheKey = `aviation:news:${[...entities].sort().join(',')}:${req.windowHours}:v1`;
     const now = Date.now();
 
     try {

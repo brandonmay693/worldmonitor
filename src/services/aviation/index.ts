@@ -109,7 +109,7 @@ export interface PriceQuote {
   departureDate: string;
   carrierIata: string;
   carrierName: string;
-  priceUsd: number;
+  priceAmount: number;
   currency: string;
   cabin: string;
   stops: number;
@@ -247,7 +247,7 @@ function toDisplayPriceQuote(p: ProtoPriceQuote): PriceQuote {
   return {
     id: p.id, origin: p.origin, destination: p.destination, departureDate: p.departureDate,
     carrierIata: p.carrier?.iataCode ?? '', carrierName: p.carrier?.name ?? '',
-    priceUsd: p.priceAmount,
+    priceAmount: p.priceAmount,
     currency: p.currency?.toUpperCase() || 'USD',
     cabin: p.cabin?.replace('CABIN_CLASS_', '').replace(/_/g, ' ') ?? 'Economy',
     stops: p.stops, durationMinutes: p.durationMinutes, isIndicative: p.isIndicative,

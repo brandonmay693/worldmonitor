@@ -215,7 +215,6 @@ export async function searchPricesTravelpayouts(opts: {
 
     if (isDayPrecision) {
         // v3: prices_for_dates
-        const endDate = departureDate; // single-date query
         const params = new URLSearchParams({
             origin,
             destination,
@@ -225,7 +224,6 @@ export async function searchPricesTravelpayouts(opts: {
             one_way: returnDate ? 'false' : 'true',
             sorting: 'price',
             limit: String(Math.min(maxResults, 30)),
-            token,
         });
         if (returnDate) params.set('return_at', returnDate);
         if (nonstopOnly) params.set('direct', 'true');

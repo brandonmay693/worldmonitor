@@ -5,6 +5,7 @@ import type {
     CarrierOpsSummary,
 } from '../../../../src/generated/server/worldmonitor/aviation/v1/service_server';
 import { cachedFetchJson } from '../../../_shared/redis';
+import { parseStringArray } from './_shared';
 import { listAirportFlights } from './list-airport-flights';
 
 const CACHE_TTL = 300;
@@ -13,7 +14,8 @@ export async function getCarrierOps(
     ctx: ServerContext,
     req: GetCarrierOpsRequest,
 ): Promise<GetCarrierOpsResponse> {
-    const airports = req.airports?.length > 0 ? req.airports.map(a => a.toUpperCase()) : ['IST', 'ESB', 'SAW'];
+    const rawAirports = parseStringArray(req.airports);
+    const airports = rawAirports.length > 0 ? rawAirports.map(a => a.toUpperCase()) : ['IST', 'ESB', 'SAW'];
     const minFlights = req.minFlights ?? 3;
     const cacheKey = `aviation:carrier-ops:${airports.sort().join(',')}:v1`;
     const now = Date.now();

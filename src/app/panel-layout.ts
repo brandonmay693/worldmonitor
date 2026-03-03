@@ -78,6 +78,7 @@ export class PanelLayoutManager implements AppModule {
   private callbacks: PanelLayoutCallbacks;
   private panelDragCleanupHandlers: Array<() => void> = [];
   private criticalBannerEl: HTMLElement | null = null;
+  private aviationCommandBar: AviationCommandBar | null = null;
   private readonly applyTimeRangeFilterDebounced: (() => void) & { cancel(): void };
 
   constructor(ctx: AppContext, callbacks: PanelLayoutCallbacks) {
@@ -110,6 +111,11 @@ export class PanelLayoutManager implements AppModule {
     this.ctx.digestPanel?.destroy();
     this.ctx.speciesPanel?.destroy();
     this.ctx.renewablePanel?.destroy();
+
+    // Clean up aviation components
+    this.aviationCommandBar?.destroy();
+    this.aviationCommandBar = null;
+    this.ctx.panels['airline-intel']?.destroy();
 
     window.removeEventListener('resize', this.ensureCorrectZones);
   }
@@ -643,11 +649,9 @@ export class PanelLayoutManager implements AppModule {
 
     // Airline Intelligence panel (non-happy variants)
     if (SITE_VARIANT !== 'happy') {
-      const airlineIntelPanel = new AirlineIntelPanel();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (this.ctx.panels as Record<string, any>)['airline-intel'] = airlineIntelPanel;
+      this.ctx.panels['airline-intel'] = new AirlineIntelPanel();
       // Launch the Ctrl+J command bar (attaches global keydown listener)
-      new AviationCommandBar();
+      this.aviationCommandBar = new AviationCommandBar();
     }
 
     if (SITE_VARIANT !== 'happy') {

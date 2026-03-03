@@ -16,6 +16,7 @@ import {
 } from '@/services/aviation';
 import { aviationWatchlist } from '@/services/aviation/watchlist';
 import { escapeHtml } from '@/utils/sanitize';
+import { Panel } from './Panel';
 
 // ---- Helpers ----
 
@@ -62,9 +63,7 @@ const TAB_LABELS: Record<Tab, string> = {
 
 // ---- Panel class ----
 
-export class AirlineIntelPanel {
-    private el: HTMLElement;
-    private contentEl: HTMLElement;
+export class AirlineIntelPanel extends Panel {
     private activeTab: Tab = 'ops';
     private airports: string[];
     private opsData: AirportOpsSummary[] = [];
@@ -81,61 +80,59 @@ export class AirlineIntelPanel {
     private loading = false;
     private refreshTimer: ReturnType<typeof setInterval> | null = null;
     private liveIndicator!: HTMLElement;
+    private tabBar!: HTMLElement;
 
     constructor() {
+        super({ id: 'airline-intel', title: '✈️ Airline Intelligence', trackActivity: true });
+
         const wl = aviationWatchlist.get();
         this.airports = wl.airports.slice(0, 8);
 
-        this.el = document.createElement('div');
-        this.el.className = 'panel';
-        this.el.id = 'airline-intel-panel';
-        this.el.innerHTML = `
-      <div class="panel-header">
-        <span class="panel-title">✈️ Airline Intelligence</span>
-        <div class="panel-actions">
-          <button class="icon-btn" id="airlineIntelRefresh" title="Refresh">↻</button>
-        </div>
-      </div>
-      <div class="airline-intel-tabs" id="airlineIntelTabs"></div>
-      <div class="panel-content airline-intel-content" id="airlineIntelContent"></div>
-    `;
+        // Add refresh button to header
+        const refreshBtn = document.createElement('button');
+        refreshBtn.className = 'icon-btn';
+        refreshBtn.title = 'Refresh';
+        refreshBtn.textContent = '↻';
+        refreshBtn.addEventListener('click', () => this.refresh());
+        this.header.appendChild(refreshBtn);
 
-        const tabBar = this.el.querySelector('#airlineIntelTabs')!;
+        // Add LIVE indicator badge to the title
+        this.liveIndicator = document.createElement('span');
+        this.liveIndicator.className = 'live-badge';
+        this.liveIndicator.textContent = '\u25CF LIVE';
+        this.liveIndicator.style.cssText = 'display:none;color:#22c55e;font-size:10px;font-weight:700;margin-left:8px;letter-spacing:0.5px;';
+        this.header.querySelector('.panel-title')?.appendChild(this.liveIndicator);
+
+        // Insert tab bar between header and content
+        this.tabBar = document.createElement('div');
+        this.tabBar.className = 'airline-intel-tabs';
         TABS.forEach(tab => {
             const btn = document.createElement('button');
             btn.className = `tab-btn${tab === this.activeTab ? ' active' : ''}`;
             btn.textContent = TAB_LABELS[tab];
             btn.dataset.tab = tab;
             btn.addEventListener('click', () => this.switchTab(tab as Tab));
-            tabBar.appendChild(btn);
+            this.tabBar.appendChild(btn);
         });
+        this.element.insertBefore(this.tabBar, this.content);
 
-        this.contentEl = this.el.querySelector('#airlineIntelContent')!;
-
-        this.liveIndicator = document.createElement('span');
-        this.liveIndicator.className = 'live-badge';
-        this.liveIndicator.textContent = '\u25CF LIVE';
-        this.liveIndicator.style.cssText = 'display:none;color:#22c55e;font-size:10px;font-weight:700;margin-left:8px;letter-spacing:0.5px;';
-        this.el.querySelector('.panel-title')?.appendChild(this.liveIndicator);
-
-        this.el.querySelector('#airlineIntelRefresh')?.addEventListener('click', () => this.refresh());
+        // Add styling class to inherited content div
+        this.content.classList.add('airline-intel-content');
 
         this.addStyles();
-        this.renderLoading();
         void this.refresh();
 
-        // Auto-refresh ops every 5 min, news every 15 min
-        this.refreshTimer = setInterval(() => void this.loadOps(), 5 * 60_000);
+        // Auto-refresh every 5 min — refresh() loads ops + active tab
+        this.refreshTimer = setInterval(() => void this.refresh(), 5 * 60_000);
     }
 
-    getElement(): HTMLElement { return this.el; }
-
     toggle(visible: boolean): void {
-        this.el.style.display = visible ? '' : 'none';
+        this.element.style.display = visible ? '' : 'none';
     }
 
     destroy(): void {
         if (this.refreshTimer) clearInterval(this.refreshTimer);
+        super.destroy();
     }
 
     /** Called by the map when new aircraft positions arrive. */
@@ -151,7 +148,7 @@ export class AirlineIntelPanel {
 
     private switchTab(tab: Tab): void {
         this.activeTab = tab;
-        this.el.querySelectorAll('.tab-btn').forEach(b => {
+        this.tabBar.querySelectorAll('.tab-btn').forEach(b => {
             b.classList.toggle('active', (b as HTMLElement).dataset.tab === tab);
         });
         this.renderTab();
@@ -214,7 +211,7 @@ export class AirlineIntelPanel {
     }
 
     private renderLoading(): void {
-        this.contentEl.innerHTML = '<div class="panel-loading">Loading…</div>';
+        this.content.innerHTML = '<div class="panel-loading">Loading…</div>';
     }
 
     private renderTab(): void {
@@ -232,7 +229,7 @@ export class AirlineIntelPanel {
     // ---- Ops tab ----
     private renderOps(): void {
         if (!this.opsData.length) {
-            this.contentEl.innerHTML = '<div class="no-data">No ops data — loading…</div>';
+            this.content.innerHTML = '<div class="no-data">No ops data — loading…</div>';
             return;
         }
         const rows = this.opsData.map(s => `
@@ -245,13 +242,13 @@ export class AirlineIntelPanel {
         ${s.closureStatus ? '<div class="ops-closed">CLOSED</div>' : ''}
         ${s.notamFlags.length ? `<div class="ops-notam">⚠️ NOTAM</div>` : ''}
       </div>`).join('');
-        this.contentEl.innerHTML = `<div class="ops-grid">${rows}</div>`;
+        this.content.innerHTML = `<div class="ops-grid">${rows}</div>`;
     }
 
     // ---- Flights tab ----
     private renderFlights(): void {
         if (!this.flightsData.length) {
-            this.contentEl.innerHTML = `<div class="no-data">No flights — select airport in settings.</div>`;
+            this.content.innerHTML = `<div class="no-data">No flights — select airport in settings.</div>`;
             return;
         }
         const rows = this.flightsData.map(f => {
@@ -265,13 +262,13 @@ export class AirlineIntelPanel {
           <div class="flight-status" style="color:${color}">${f.status}</div>
         </div>`;
         }).join('');
-        this.contentEl.innerHTML = `<div class="flights-list">${rows}</div>`;
+        this.content.innerHTML = `<div class="flights-list">${rows}</div>`;
     }
 
     // ---- Airlines tab ----
     private renderAirlines(): void {
         if (!this.carriersData.length) {
-            this.contentEl.innerHTML = '<div class="no-data">No carrier data yet.</div>';
+            this.content.innerHTML = '<div class="no-data">No carrier data yet.</div>';
             return;
         }
         const rows = this.carriersData.slice(0, 15).map(c => `
@@ -281,13 +278,13 @@ export class AirlineIntelPanel {
         <div class="carrier-delay" style="color:${c.delayPct > 30 ? '#ef4444' : '#aaa'}">${c.delayPct.toFixed(1)}% delayed</div>
         <div class="carrier-cancel">${c.cancellationRate.toFixed(1)}% cxl</div>
       </div>`).join('');
-        this.contentEl.innerHTML = `<div class="carriers-list">${rows}</div>`;
+        this.content.innerHTML = `<div class="carriers-list">${rows}</div>`;
     }
 
     // ---- Tracking tab ----
     private renderTracking(): void {
         if (!this.trackingData.length) {
-            this.contentEl.innerHTML = '<div class="no-data">No aircraft tracking data.</div>';
+            this.content.innerHTML = '<div class="no-data">No aircraft tracking data.</div>';
             return;
         }
         const rows = this.trackingData.slice(0, 20).map(p => `
@@ -297,13 +294,13 @@ export class AirlineIntelPanel {
         <div class="track-spd">${fmt(p.groundSpeedKts)} kts</div>
         <div class="track-pos">${p.lat.toFixed(2)}, ${p.lon.toFixed(2)}</div>
       </div>`).join('');
-        this.contentEl.innerHTML = `<div class="tracking-list">${rows}</div>`;
+        this.content.innerHTML = `<div class="tracking-list">${rows}</div>`;
     }
 
     // ---- News tab ----
     private renderNews(): void {
         if (!this.newsData.length) {
-            this.contentEl.innerHTML = '<div class="no-data">No aviation news.</div>';
+            this.content.innerHTML = '<div class="no-data">No aviation news.</div>';
             return;
         }
         const items = this.newsData.map(n => `
@@ -311,7 +308,7 @@ export class AirlineIntelPanel {
         <a href="${escapeHtml(n.url)}" target="_blank" rel="noopener" class="news-link">${escapeHtml(n.title)}</a>
         <div class="news-meta" style="font-size:11px;color:var(--text-secondary,#999);margin-top:2px">${escapeHtml(n.sourceName)} · ${n.publishedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
       </div>`).join('');
-        this.contentEl.innerHTML = `<div class="news-list" style="padding:0 4px">${items}</div>`;
+        this.content.innerHTML = `<div class="news-list" style="padding:0 4px">${items}</div>`;
     }
 
     // ---- Prices tab ----
@@ -338,7 +335,7 @@ export class AirlineIntelPanel {
       <div style="margin-bottom:6px">${providerBadge}<span style="font-size:10px;color:#6b7280;margin-left:6px">All prices indicative</span></div>`;
 
         if (!this.pricesData.length) {
-            this.contentEl.innerHTML = `${searchForm}<div class="no-data">Enter route and search for prices.</div>`;
+            this.content.innerHTML = `${searchForm}<div class="no-data">Enter route and search for prices.</div>`;
         } else {
             const now = Date.now();
             const active = this.pricesData.filter(q => !isPriceExpired(q));
@@ -352,20 +349,20 @@ export class AirlineIntelPanel {
           <div class="price-row" style="${exp ? 'opacity:0.4;' : ''}">
             <div class="price-carrier">${escapeHtml(q.carrierName || q.carrierIata || '\u2014')}</div>
             <div class="price-route" style="flex:1">${escapeHtml(q.origin)} \u2192 ${escapeHtml(q.destination)}</div>
-            <div class="price-amount" style="font-weight:700;color:${exp ? '#6b7280' : 'var(--accent,#60a5fa)'}">${currency} ${Math.round(q.priceUsd)}</div>
+            <div class="price-amount" style="font-weight:700;color:${exp ? '#6b7280' : 'var(--accent,#60a5fa)'}">${currency} ${Math.round(q.priceAmount)}</div>
             <div class="price-dur">${fmtMin(q.durationMinutes)}</div>
             <div class="price-stops">${q.stops === 0 ? 'nonstop' : `${q.stops} stop`}</div>
             ${expCountdown(q.expiresAt, now)}
           </div>`;
             }).join('');
-            this.contentEl.innerHTML = `${searchForm}<div class="prices-list">${rows}</div>`;
+            this.content.innerHTML = `${searchForm}<div class="prices-list">${rows}</div>`;
         }
 
-        this.contentEl.querySelector('#priceSearchBtn')?.addEventListener('click', () => {
-            this.pricesOrigin = ((this.contentEl.querySelector('#priceFromInput') as HTMLInputElement)?.value || 'IST').toUpperCase();
-            this.pricesDest = ((this.contentEl.querySelector('#priceToInput') as HTMLInputElement)?.value || 'LHR').toUpperCase();
-            this.pricesDep = (this.contentEl.querySelector('#priceDepInput') as HTMLInputElement)?.value || '';
-            this.pricesCurrency = (this.contentEl.querySelector('#priceCurrencySelect') as HTMLSelectElement)?.value || 'usd';
+        this.content.querySelector('#priceSearchBtn')?.addEventListener('click', () => {
+            this.pricesOrigin = ((this.content.querySelector('#priceFromInput') as HTMLInputElement)?.value || 'IST').toUpperCase();
+            this.pricesDest = ((this.content.querySelector('#priceToInput') as HTMLInputElement)?.value || 'LHR').toUpperCase();
+            this.pricesDep = (this.content.querySelector('#priceDepInput') as HTMLInputElement)?.value || '';
+            this.pricesCurrency = (this.content.querySelector('#priceCurrencySelect') as HTMLSelectElement)?.value || 'usd';
             void this.loadTab('prices');
         });
     }

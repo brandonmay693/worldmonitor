@@ -99,7 +99,7 @@ async function executeIntent(intent: Intent): Promise<CommandResult> {
             html: `<div class="cmd-section">
       <strong>💸 ${escapeHtml(intent.origin)} → ${escapeHtml(intent.destination)}</strong>
       ${isDemoMode ? '<span class="demo-badge" style="margin-left:6px">DEMO</span>' : ''}
-      <div>Best: <strong style="color:#60a5fa">$${Math.round(best.priceUsd)}</strong> via ${escapeHtml(best.carrierName || best.carrierIata)} · ${best.stops === 0 ? 'nonstop' : `${best.stops} stop`}</div>
+      <div>Best: <strong style="color:#60a5fa">$${Math.round(best.priceAmount)}</strong> via ${escapeHtml(best.carrierName || best.carrierIata)} · ${best.stops === 0 ? 'nonstop' : `${best.stops} stop`}</div>
     </div>` };
     }
 
