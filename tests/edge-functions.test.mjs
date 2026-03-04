@@ -13,6 +13,16 @@ const edgeFunctions = readdirSync(apiDir)
   .filter((f) => f.endsWith('.js') && !f.startsWith('_'))
   .map((f) => ({ name: f, path: join(apiDir, f) }));
 
+describe('Edge Function shared helpers resolve', () => {
+  it('_rss-allowed-domains.js re-exports shared domain list', async () => {
+    const mod = await import(join(apiDir, '_rss-allowed-domains.js'));
+    const domains = mod.default;
+    assert.ok(Array.isArray(domains), 'Expected default export to be an array');
+    assert.ok(domains.length > 200, `Expected 200+ domains, got ${domains.length}`);
+    assert.ok(domains.includes('feeds.bbci.co.uk'), 'Expected BBC feed domain in list');
+  });
+});
+
 describe('Edge Function module isolation', () => {
   for (const { name, path } of edgeFunctions) {
     it(`${name} does not import from ../server/ (Edge Functions cannot resolve cross-directory TS)`, () => {
