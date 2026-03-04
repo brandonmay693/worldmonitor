@@ -139,6 +139,7 @@
     "downloadApp": "Download App",
     "fullscreen": "Fullscreen",
     "pinMap": "Pin map to top",
+    "selectRegion": "Select Region",
     "viewOnGitHub": "View on GitHub",
     "filterSources": "Filter sources...",
     "sourcesEnabled": "{{enabled}}/{{total}} enabled",
@@ -935,7 +936,8 @@
     "community": {
       "joinDiscussion": "Join the Discussion",
       "openDiscussion": "Open Discussion",
-      "dontShowAgain": "Don't show again"
+      "dontShowAgain": "Don't show again",
+      "sectionLabel": "Community"
     },
     "threatLabels": {
       "critical": "CRIT",
@@ -1649,6 +1651,7 @@
       "confirmTitle": "Confirm",
       "restoreDefaults": "Restore default channels",
       "availableChannels": "Available channels",
+      "noResults": "No channels found matching \"{{term}}\"",
       "customChannel": "Custom channel",
       "regionAll": "All",
       "regionNorthAmerica": "North America",
