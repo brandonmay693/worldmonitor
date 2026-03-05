@@ -433,8 +433,17 @@ export class MapComponent {
 
     const MAX_SVG_LAYERS = 9;
     const enforceLayerLimit = () => {
-      const allBtns = toggles.querySelectorAll<HTMLButtonElement>('.layer-toggle');
-      const activeCount = Array.from(allBtns).filter(b => b.classList.contains('active')).length;
+      const allBtns = Array.from(toggles.querySelectorAll<HTMLButtonElement>('.layer-toggle'));
+      const activeBtns = allBtns.filter(b => b.classList.contains('active'));
+      if (activeBtns.length > MAX_SVG_LAYERS) {
+        const excess = activeBtns.slice(MAX_SVG_LAYERS);
+        for (const btn of excess) {
+          btn.classList.remove('active');
+          const layer = btn.dataset.layer as keyof MapLayers | undefined;
+          if (layer) this.toggleLayer(layer);
+        }
+      }
+      const activeCount = allBtns.filter(b => b.classList.contains('active')).length;
       allBtns.forEach(b => {
         if (!b.classList.contains('active')) {
           b.disabled = activeCount >= MAX_SVG_LAYERS;

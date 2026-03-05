@@ -16,10 +16,12 @@ export const GLOBE_RENDER_SCALE_OPTIONS: {
   { value: '3', labelKey: 'components.insights.globeRenderScaleOptions.3', fallbackLabel: 'Insane (3x)', disabled: true },
 ];
 
+const ALLOWED_SCALES = GLOBE_RENDER_SCALE_OPTIONS.filter(o => !o.disabled).map(o => o.value);
+
 export function getGlobeRenderScale(): GlobeRenderScale {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw && ['auto', '1', '1.5', '2', '3'].includes(raw)) return raw as GlobeRenderScale;
+    if (raw && ALLOWED_SCALES.includes(raw as GlobeRenderScale)) return raw as GlobeRenderScale;
   } catch {
     // ignore
   }
@@ -27,12 +29,13 @@ export function getGlobeRenderScale(): GlobeRenderScale {
 }
 
 export function setGlobeRenderScale(scale: GlobeRenderScale): void {
+  const safeScale = ALLOWED_SCALES.includes(scale) ? scale : 'auto';
   try {
-    localStorage.setItem(STORAGE_KEY, scale);
+    localStorage.setItem(STORAGE_KEY, safeScale);
   } catch {
     // ignore
   }
-  window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: { scale } }));
+  window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: { scale: safeScale } }));
 }
 
 export function subscribeGlobeRenderScaleChange(cb: (scale: GlobeRenderScale) => void): () => void {

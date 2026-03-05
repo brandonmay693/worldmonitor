@@ -4445,9 +4445,20 @@ export class DeckGLMap {
     const MAX_FLAT_LAYERS = 9;
     const togglesEl = this.container.querySelector('.deckgl-layer-toggles');
     if (!togglesEl) return;
-    const visibleToggles = Array.from(togglesEl.querySelectorAll<HTMLInputElement>('.layer-toggle input'))
+    const allToggles = Array.from(togglesEl.querySelectorAll<HTMLInputElement>('.layer-toggle input'))
       .filter(i => (i.closest('.layer-toggle') as HTMLElement)?.style.display !== 'none');
-    const allToggles = visibleToggles;
+    const checked = allToggles.filter(i => i.checked);
+    if (checked.length > MAX_FLAT_LAYERS) {
+      const excess = checked.slice(MAX_FLAT_LAYERS);
+      for (const inp of excess) {
+        inp.checked = false;
+        const layer = inp.closest('.layer-toggle')?.getAttribute('data-layer') as keyof MapLayers | null;
+        if (layer) {
+          this.state.layers[layer] = false;
+        }
+      }
+      this.render();
+    }
     const activeCount = allToggles.filter(i => i.checked).length;
     allToggles.forEach(i => {
       if (!i.checked) {
