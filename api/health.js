@@ -3,14 +3,8 @@ export const config = { runtime: 'edge' };
 const BOOTSTRAP_KEYS = {
   earthquakes:       'seismology:earthquakes:v1',
   outages:           'infra:outages:v1',
-  serviceStatuses:   'infra:service-statuses:v1',
   sectors:           'market:sectors:v1',
   etfFlows:          'market:etf-flows:v1',
-  macroSignals:      'economic:macro-signals:v1',
-  shippingRates:     'supply_chain:shipping:v2',
-  chokepoints:       'supply_chain:chokepoints:v2',
-  minerals:          'supply_chain:minerals:v2',
-  giving:            'giving:summary:v1',
   climateAnomalies:  'climate:anomalies:v1',
   wildfires:         'wildfire:fires:v1',
   marketQuotes:      'market:stocks-bootstrap:v1',
@@ -32,9 +26,15 @@ const BOOTSTRAP_KEYS = {
 };
 
 const STANDALONE_KEYS = {
+  serviceStatuses:       'infra:service-statuses:v1',
+  macroSignals:          'economic:macro-signals:v1',
   bisPolicy:             'economic:bis:policy:v1',
   bisExchange:           'economic:bis:eer:v1',
   bisCredit:             'economic:bis:credit:v1',
+  shippingRates:         'supply_chain:shipping:v2',
+  chokepoints:           'supply_chain:chokepoints:v2',
+  minerals:              'supply_chain:minerals:v2',
+  giving:                'giving:summary:v1',
   gpsjam:                'intelligence:gpsjam:v1',
   theaterPosture:        'theater-posture:sebuf:stale:v1',
   theaterPostureLive:    'theater-posture:sebuf:v1',
@@ -74,6 +74,7 @@ const ON_DEMAND_KEYS = new Set([
   'theaterPostureLive', 'theaterPostureBackup', 'riskScoresLive',
   'usniFleet', 'usniFleetStale', 'positiveEventsLive', 'cableHealth',
   'theaterPosture', 'bisPolicy', 'bisExchange', 'bisCredit',
+  'serviceStatuses', 'macroSignals', 'shippingRates', 'chokepoints', 'minerals', 'giving',
 ]);
 
 const NEG_SENTINEL = '__WM_NEG__';
