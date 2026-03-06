@@ -249,7 +249,8 @@ export class LiveWebcamsPanel extends Panel {
       return `http://localhost:${getLocalApiPort()}/api/youtube-embed?${params.toString()}`;
     }
     const vq = quality !== 'auto' ? `&vq=${quality}` : '';
-    return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&playsinline=1&rel=0${vq}`;
+    const origin = encodeURIComponent(window.location.origin);
+    return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&playsinline=1&rel=0&enablejsapi=1&origin=${origin}${vq}`;
   }
 
   private createIframe(feed: WebcamFeed): HTMLIFrameElement {
@@ -307,10 +308,9 @@ export class LiveWebcamsPanel extends Panel {
     };
     this.iframeTrackers.set(iframe, tracker);
 
-    // Desktop sidecar embed posts yt-ready/yt-state. If nothing arrives, assume blocked/stuck.
-    if (isDesktopRuntime()) {
-      tracker.timeout = setTimeout(() => this.markIframeBlocked(iframe), this.EMBED_READY_TIMEOUT_MS);
-    }
+    // YouTube embeds post yt-ready/yt-state (desktop sidecar) or native YT API events (web with enablejsapi=1).
+    // If nothing arrives within the timeout, assume blocked/stuck.
+    tracker.timeout = setTimeout(() => this.markIframeBlocked(iframe), this.EMBED_READY_TIMEOUT_MS);
   }
 
   private retryIframe(oldIframe: HTMLIFrameElement): void {
@@ -366,13 +366,28 @@ export class LiveWebcamsPanel extends Panel {
   }
 
   private handleEmbedMessage(e: MessageEvent): void {
-    if (!isDesktopRuntime()) return;
     const iframe = this.findIframeBySource(e.source);
     if (!iframe) return;
 
-    const msg = e.data as { type?: string; state?: number; code?: number } | null;
-    if (!msg?.type) return;
+    // Desktop sidecar posts { type: 'yt-ready' | 'yt-state' | 'yt-error' }
+    const msg = e.data as { type?: string; state?: number; code?: number; event?: string; info?: unknown } | string | null;
 
+    // YouTube native API (web) posts JSON strings: '{"event":"onReady",...}'
+    if (typeof msg === 'string') {
+      try {
+        const parsed = JSON.parse(msg) as { event?: string; info?: { playerState?: number } };
+        if (parsed.event === 'onReady' || parsed.event === 'initialDelivery') {
+          this.markIframeReady(iframe);
+        } else if (parsed.event === 'infoDelivery' && parsed.info?.playerState === 1) {
+          this.markIframeReady(iframe);
+        }
+      } catch { /* not YouTube JSON — ignore */ }
+      return;
+    }
+
+    if (!msg || typeof msg !== 'object') return;
+
+    // Desktop sidecar format
     if (msg.type === 'yt-ready') {
       this.markIframeReady(iframe);
       return;
