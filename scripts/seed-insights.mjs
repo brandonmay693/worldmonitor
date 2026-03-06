@@ -184,10 +184,8 @@ function categorizeStory(title) {
 async function warmDigestCache() {
   const apiBase = process.env.API_BASE_URL || 'https://api.worldmonitor.app';
   try {
-    const resp = await fetch(`${apiBase}/api/rpc/worldmonitor.news.v1.NewsService/ListFeedDigest`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'User-Agent': CHROME_UA },
-      body: JSON.stringify({ variant: 'full', lang: 'en' }),
+    const resp = await fetch(`${apiBase}/api/news/v1/list-feed-digest?variant=full&lang=en`, {
+      headers: { 'User-Agent': CHROME_UA },
       signal: AbortSignal.timeout(30_000),
     });
     if (resp.ok) console.log('  Digest cache warmed via RPC');
