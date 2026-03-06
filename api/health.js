@@ -229,9 +229,10 @@ export default async function handler(req) {
       if (meta?.fetchedAt) {
         seedAge = Math.round((now - meta.fetchedAt) / 60_000);
         seedStale = seedAge > seedCfg.maxStaleMin;
+      } else {
+        // No seed-meta → data exists but freshness is unknown → stale
+        seedStale = true;
       }
-      // Don't mark stale if no meta yet — seed-meta auto-writes are new,
-      // existing data may not have meta until next refresh cycle.
     }
 
     let status;
