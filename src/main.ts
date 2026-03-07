@@ -15,7 +15,7 @@ Sentry.init({
     : location.hostname.includes('vercel.app') ? 'preview'
     : 'development',
   enabled: Boolean(sentryDsn) && !location.hostname.startsWith('localhost') && !('__TAURI_INTERNALS__' in window),
-  sendDefaultPii: true,
+  sendDefaultPii: false,
   tracesSampleRate: 0.1,
   ignoreErrors: [
     'Invalid WebGL2RenderingContext',
@@ -267,8 +267,8 @@ import { clearChunkReloadGuard, installChunkReloadGuard } from '@/bootstrap/chun
 // Auto-reload on stale chunk 404s after deployment (Vite fires this for modulepreload failures).
 const chunkReloadStorageKey = installChunkReloadGuard(__APP_VERSION__);
 
-// Initialize Vercel Analytics
-inject();
+// Vercel Analytics — disabled for self-hosted use
+// inject();
 
 // Initialize dynamic meta tags for sharing
 initMetaTags();
