@@ -2152,10 +2152,6 @@ async function seedServiceStatuses() {
 }
 
 function startServiceStatusesSeedLoop() {
-  if (!UPSTASH_ENABLED) {
-    console.log('[ServiceStatuses] Disabled (no Upstash Redis)');
-    return;
-  }
   console.log(`[ServiceStatuses] Seed loop starting (interval ${SERVICE_STATUSES_SEED_INTERVAL_MS / 1000 / 60}min)`);
   seedServiceStatuses().catch((e) => console.warn('[ServiceStatuses] Initial seed error:', e?.message || e));
   setInterval(() => {
