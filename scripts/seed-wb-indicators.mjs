@@ -441,15 +441,22 @@ async function main() {
     process.exit(1);
   }
 
-  // Write all keys to Redis in one pipeline
+  // Write all keys + seed-meta to Redis in one pipeline
+  const seedMeta = JSON.stringify({ fetchedAt: Date.now(), recordCount: rankings.length });
+  const metaTtl = String(TTL_SECONDS + 3600); // seed-meta outlives data by 1h
   const pipeline = [
     ['SET', fullKey, JSON.stringify(rankings), 'EX', String(TTL_SECONDS)],
+    ['SET', `seed-meta:${BOOTSTRAP_KEY}`, seedMeta, 'EX', metaTtl],
   ];
   if (progressWithData.length > 0) {
+    const progressMeta = JSON.stringify({ fetchedAt: Date.now(), recordCount: progressWithData.length });
     pipeline.push(['SET', progressKey, JSON.stringify(progressData), 'EX', String(TTL_SECONDS)]);
+    pipeline.push(['SET', `seed-meta:${PROGRESS_KEY}`, progressMeta, 'EX', metaTtl]);
   }
   if (renewableData.historicalData.length > 0) {
+    const renewableMeta = JSON.stringify({ fetchedAt: Date.now(), recordCount: renewableData.regions.length });
     pipeline.push(['SET', renewableKey, JSON.stringify(renewableData), 'EX', String(TTL_SECONDS)]);
+    pipeline.push(['SET', `seed-meta:${RENEWABLE_KEY}`, renewableMeta, 'EX', metaTtl]);
   }
 
   console.log(`Writing ${pipeline.length} keys to Redis...`);

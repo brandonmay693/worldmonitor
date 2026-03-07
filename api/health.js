@@ -11,6 +11,8 @@ const BOOTSTRAP_KEYS = {
   commodityQuotes:   'market:commodities-bootstrap:v1',
   cyberThreats:      'cyber:threats-bootstrap:v2',
   techReadiness:     'economic:worldbank-techreadiness:v1',
+  progressData:      'economic:worldbank-progress:v1',
+  renewableEnergy:   'economic:worldbank-renewable:v1',
   positiveGeoEvents: 'positive-events:geo-bootstrap:v1',
   riskScores:        'risk:scores:sebuf:stale:v1',
   naturalEvents:     'natural:events:v1',
@@ -66,6 +68,9 @@ const SEED_META = {
   insights:         { key: 'seed-meta:news:insights',           maxStaleMin: 30 },
   marketQuotes:     { key: 'seed-meta:market:stocks',         maxStaleMin: 30 },
   commodityQuotes:  { key: 'seed-meta:market:commodities',    maxStaleMin: 30 },
+  techReadiness:    { key: 'seed-meta:economic:worldbank-techreadiness:v1', maxStaleMin: 10080 },
+  progressData:     { key: 'seed-meta:economic:worldbank-progress:v1',     maxStaleMin: 10080 },
+  renewableEnergy:  { key: 'seed-meta:economic:worldbank-renewable:v1',    maxStaleMin: 10080 },
   // RPC-populated keys — auto-tracked by cachedFetchJson seed-meta writes
   serviceStatuses:  { key: 'seed-meta:infra:service-statuses',    maxStaleMin: 120 },
   macroSignals:     { key: 'seed-meta:economic:macro-signals',    maxStaleMin: 60 },
