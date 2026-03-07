@@ -69,7 +69,6 @@ interface EndpointRatePolicy {
 }
 
 const ENDPOINT_RATE_POLICIES: Record<string, EndpointRatePolicy> = {
-  '/api/news/v1/summarize-article': { limit: 20, window: '60 s' },
   '/api/news/v1/summarize-article-cache': { limit: 3000, window: '60 s' },
 };
 
